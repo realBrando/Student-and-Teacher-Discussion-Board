@@ -256,6 +256,48 @@ public class DiscussionBoard extends JComponent implements Runnable {
         actionMenuFrame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         actionMenuFrame.setVisible(true);
     }
+    
+    private void showDiscussionBoard() {
+        discussionBoardFrame = new JFrame(title);
+        Container content = discussionBoardFrame.getContentPane();
+        SpringLayout layout = new SpringLayout();
+        content.setLayout(layout);
+
+        if (currentUser instanceof Teacher) {
+
+        } else {
+            String[] coursesArr = new String[courses.size()];
+            for (int i = 0; i < courses.size(); i++) {
+                coursesArr[i] = String.valueOf(courses.get(i));
+            }
+            String courseSelected;
+            courseSelected = (String) JOptionPane.showInputDialog(null,
+                    "Please select a course:", title, JOptionPane.QUESTION_MESSAGE, null,
+                    coursesArr, coursesArr[0]);
+
+            Course c = getCourse(courseSelected);
+
+            String[] forumArr = new String[c.getForums().size()];
+            for (int i = 0; i < c.getForums().size(); i++) {
+                forumArr[i] = String.valueOf(c.getForums().get(i));
+            }
+            String forumSelected;
+            forumSelected = (String) JOptionPane.showInputDialog(null,
+                    "Please select a forum to go to:", title, JOptionPane.QUESTION_MESSAGE, null,
+                    forumArr, forumArr[0]);
+
+            Forum f = getForum(c, forumSelected);
+            //TODO
+            JLabel forumTopic = new JLabel("Forum topic:" + f.getTopic() + "\nComments:");
+            do {
+                JLabel comment = new JLabel();
+            } while ();
+
+            JLabel forumSelection = new JLabel("Please select a forum to go to:");
+            goToForumButton = new JButton("Go to forum");
+
+        }
+    }
 
 
 //        loadAccounts("accounts.txt");
