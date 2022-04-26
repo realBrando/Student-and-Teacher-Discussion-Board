@@ -69,6 +69,22 @@ public class DiscussionBoard extends JComponent implements Runnable {
     JButton changeUsernameButton;
     JButton goToDBButton;
 
+    //teacher prompt
+    JFrame teacherPromptFrame;
+    JButton createCourse;
+    JButton chooseCourse;
+
+    //discussion board
+    JFrame discussionBoardFrame;
+
+    //student forum
+    JFrame studentForumFrame;
+    JButton replyButton;
+    JButton voteButton;
+    JButton exitButton;
+
+
+
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new DiscussionBoard());
     }
@@ -163,11 +179,32 @@ public class DiscussionBoard extends JComponent implements Runnable {
                         currentUser = new Teacher(username, password);
                     }
                     accounts.add(currentUser);
+                    unloadAccounts("accounts.txt");
                     JOptionPane.showMessageDialog(null, "Your account was created!",
                             title, JOptionPane.INFORMATION_MESSAGE);
                     accountCreationFrame.dispose();
                 }
             }
+            if (e.getSource() == deleteAccountButton) {
+                accounts.remove(currentUser);
+                unloadAccounts("accounts.txt");
+                JOptionPane.showMessageDialog(null, "Your account has been deleted!", title,
+                        JOptionPane.INFORMATION_MESSAGE);
+                actionMenuFrame.dispose();
+            }
+            if (e.getSource() == changePasswordButton) {
+                changePassword(currentUser);
+            }
+            if (e.getSource() == changeUsernameButton) {
+                changeUsername(currentUser);
+                actionMenuFrame.dispose();
+                showActionMenu();
+            }
+            if (e.getSource() == goToDBButton) {
+                showDiscussionBoard();
+                discussionBoardFrame.setVisible(true);
+            }
+            unloadAccounts("accounts.txt");
         }
     };
 
@@ -225,7 +262,7 @@ public class DiscussionBoard extends JComponent implements Runnable {
         deleteAccountButton = new JButton("Delete account");
         deleteAccountButton.addActionListener(actionListener);
         changePasswordButton = new JButton("Change password");
-        changeUsernameButton.addActionListener(actionListener);
+        changePasswordButton.addActionListener(actionListener);
         changeUsernameButton = new JButton("Change username");
         changeUsernameButton.addActionListener(actionListener);
         goToDBButton = new JButton("Proceed to discussion board");
@@ -239,64 +276,99 @@ public class DiscussionBoard extends JComponent implements Runnable {
 
         //location for the welcome message
         layout.putConstraint(SpringLayout.NORTH, welcome, 30, SpringLayout.NORTH, content);
-        layout.putConstraint(SpringLayout.WEST, welcome, 200, SpringLayout.WEST, content);
+        layout.putConstraint(SpringLayout.WEST, welcome, 240, SpringLayout.WEST, content);
 
         //location for the buttons
         layout.putConstraint(SpringLayout.NORTH, deleteAccountButton, 100, SpringLayout.NORTH, content);
-        layout.putConstraint(SpringLayout.WEST, deleteAccountButton, 220, SpringLayout.WEST, content);
+        layout.putConstraint(SpringLayout.WEST, deleteAccountButton, 238, SpringLayout.WEST, content);
         layout.putConstraint(SpringLayout.NORTH, changePasswordButton, 150, SpringLayout.NORTH, content);
-        layout.putConstraint(SpringLayout.WEST, changePasswordButton, 220, SpringLayout.WEST, content);
+        layout.putConstraint(SpringLayout.WEST, changePasswordButton, 230, SpringLayout.WEST, content);
         layout.putConstraint(SpringLayout.NORTH, changeUsernameButton, 200, SpringLayout.NORTH, content);
-        layout.putConstraint(SpringLayout.WEST, changeUsernameButton, 220, SpringLayout.WEST, content);
+        layout.putConstraint(SpringLayout.WEST, changeUsernameButton, 230, SpringLayout.WEST, content);
         layout.putConstraint(SpringLayout.NORTH, goToDBButton, 250, SpringLayout.NORTH, content);
-        layout.putConstraint(SpringLayout.WEST, goToDBButton, 220, SpringLayout.WEST, content);
+        layout.putConstraint(SpringLayout.WEST, goToDBButton, 200, SpringLayout.WEST, content);
 
         actionMenuFrame.setSize(600, 500);
         actionMenuFrame.setLocationRelativeTo(null);
         actionMenuFrame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         actionMenuFrame.setVisible(true);
     }
-    
+
     private void showDiscussionBoard() {
         discussionBoardFrame = new JFrame(title);
+        discussionBoardFrame.setSize(600, 500);
+        discussionBoardFrame.setLocationRelativeTo(null);
+        discussionBoardFrame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+
+        if (currentUser instanceof Teacher) {
+            teacherPrompt(currentUser);
+        } else {
+            studentPrompt();
+        }
+    }
+
+    private void studentPrompt() {
+        String[] coursesArr = new String[courses.size()];
+        for (int i = 0; i < courses.size(); i++) {
+            coursesArr[i] = String.valueOf(courses.get(i));
+        }
+        String courseSelected;
+        courseSelected = (String) JOptionPane.showInputDialog(null,
+                "Please select a course:", title, JOptionPane.QUESTION_MESSAGE, null,
+                coursesArr, coursesArr[0]);
+
+        Course c = getCourse(courseSelected);
+
+        String[] forumArr = new String[c.getForums().size()];
+        for (int i = 0; i < c.getForums().size(); i++) {
+            forumArr[i] = String.valueOf(c.getForums().get(i));
+        }
+        String forumSelected;
+        forumSelected = (String) JOptionPane.showInputDialog(null,
+                "Please select a forum to go to:", title, JOptionPane.QUESTION_MESSAGE, null,
+                forumArr, forumArr[0]);
+
+        Forum forum = getForum(c, forumSelected);
+
+        showStudentForum(forum);
+    }
+
+    private void teacherPrompt(Account account) {
+        JLabel welcome = new JLabel("Welcome to the Discussion Board!");
         Container content = discussionBoardFrame.getContentPane();
         SpringLayout layout = new SpringLayout();
         content.setLayout(layout);
+        createCourse = new JButton("Create a Class");
+        createCourse.addActionListener(actionListener);
+        chooseCourse = new JButton("Choose a Class");
+        chooseCourse.addActionListener(actionListener);
+        content.add(welcome);
+        content.add(createCourse);
+        content.add(chooseCourse);
 
-        if (currentUser instanceof Teacher) {
+        //Layout for Welcome Message
+        layout.putConstraint(SpringLayout.NORTH, welcome, 30, SpringLayout.NORTH, content);
+        layout.putConstraint(SpringLayout.WEST, welcome, 190, SpringLayout.WEST, content);
 
-        } else {
-            String[] coursesArr = new String[courses.size()];
-            for (int i = 0; i < courses.size(); i++) {
-                coursesArr[i] = String.valueOf(courses.get(i));
-            }
-            String courseSelected;
-            courseSelected = (String) JOptionPane.showInputDialog(null,
-                    "Please select a course:", title, JOptionPane.QUESTION_MESSAGE, null,
-                    coursesArr, coursesArr[0]);
+        //Layout for Buttons
+        layout.putConstraint(SpringLayout.NORTH, createCourse, 100, SpringLayout.NORTH, content);
+        layout.putConstraint(SpringLayout.WEST, createCourse, 233, SpringLayout.WEST, content);
+        layout.putConstraint(SpringLayout.NORTH, chooseCourse, 150, SpringLayout.NORTH, content);
+        layout.putConstraint(SpringLayout.WEST, chooseCourse, 231, SpringLayout.WEST, content);
+    }
 
-            Course c = getCourse(courseSelected);
+    private void showStudentForum(Forum forum) {
+        studentForumFrame = new JFrame(title);
+        Container content = studentForumFrame.getContentPane();
+        SpringLayout layout = new SpringLayout();
+        content.setLayout(layout);
+        JLabel forumTopic = new JLabel("Forum topic: " + forum.getTopic() + "\nComments:");
 
-            String[] forumArr = new String[c.getForums().size()];
-            for (int i = 0; i < c.getForums().size(); i++) {
-                forumArr[i] = String.valueOf(c.getForums().get(i));
-            }
-            String forumSelected;
-            forumSelected = (String) JOptionPane.showInputDialog(null,
-                    "Please select a forum to go to:", title, JOptionPane.QUESTION_MESSAGE, null,
-                    forumArr, forumArr[0]);
-
-            Forum f = getForum(c, forumSelected);
-            //TODO
-            JLabel forumTopic = new JLabel("Forum topic:" + f.getTopic() + "\nComments:");
-            do {
-                JLabel comment = new JLabel();
-            } while ();
-
-            JLabel forumSelection = new JLabel("Please select a forum to go to:");
-            goToForumButton = new JButton("Go to forum");
-
-        }
+        replyButton = new JButton("Reply to a comment");
+        exitButton = new JButton("Exit");
+        exitButton.addActionListener(actionListener);
+        voteButton = new JButton("Vote");
+        voteButton.addActionListener(actionListener);
     }
 
 
@@ -480,78 +552,86 @@ public class DiscussionBoard extends JComponent implements Runnable {
 
     private static void changePassword(Account account) {
         String password;
-        System.out.println("Please enter a new password:");
-        password = scanner.nextLine();
-        account.setPassword(password);
-        System.out.println("Password successfully changed!");
+        password = JOptionPane.showInputDialog(null, "Enter a new password:",
+                title, JOptionPane.INFORMATION_MESSAGE);
+        if (password != null) {
+            account.setPassword(password);
+            JOptionPane.showMessageDialog(null, "Password successfully changed!",
+                    title, JOptionPane.INFORMATION_MESSAGE);
+        }
     }
 
     private static void changeUsername(Account account) {
         String username;
-        System.out.println("Please enter a new username:");
-        username = scanner.nextLine();
-        while (getAccount(username) != null) {
-            System.out.println(usernameExists);
-            System.out.println("Please enter a new username:");
-            username = scanner.nextLine();
-        }
-        account.setUsername(username);
-    }
-
-    private static void teacherPrompt(Account account) {
-        int selection;
-        do {
-            System.out.println(teacherMenu);
-            selection = scanner.nextInt();
-            scanner.nextLine();
-        } while ((selection < 1 || selection > 2));
-
-        if (selection == 1) {
-            classCreate();
-        } else {
-            Course c = courseSelect(account);
-            String forum;
-            do {
-                System.out.println("Please type the name of a forum to continue:");
-                displayForums(c);
-                forum = scanner.nextLine();
-            } while (getForum(c, forum) == null);
-            Forum f = getForum(c, forum);
-            int sel;
-            do {
-                System.out.println(f.toString());
-                do {
-                    if (f.getComments().size() < 1) {
-                        return;
-                    }
-                    System.out.println("Please select an option below:");
-                    System.out.println("1. Reply to an existing comment\n2. Exit");
-                    sel = scanner.nextInt();
-                    scanner.nextLine();
-                } while (sel < 1 || sel > 2);
-
-                if (sel == 1) {
-                    String user;
-                    System.out.println("Type the username of the comment you wish to reply to.");
-                    user = scanner.nextLine();
-                    String content;
-                    System.out.println("What would you like to reply with?");
-                    content = scanner.nextLine();
-                    for (Comment comment : f.getComments()) {
-                        if (comment.getAuthor().equalsIgnoreCase(user)) {
-                            comment.getReplies().add(new Reply(account.getUsername(),
-                                    content, System.currentTimeMillis()));
-                        }
-                    }
-                } else {
-                    unloadAccounts("accounts.txt");
-                    unloadCourses("serial.txt");
-                    return;
-                }
-            } while (true);
-
+        username = JOptionPane.showInputDialog(null, "Enter a new username:",
+                title, JOptionPane.INFORMATION_MESSAGE);
+        if (username != null) {
+            while (getAccount(username) != null) {
+                JOptionPane.showMessageDialog(null, usernameExists, title,
+                        JOptionPane.ERROR_MESSAGE);
+                username = JOptionPane.showInputDialog(null, "Enter a new username:",
+                        title, JOptionPane.INFORMATION_MESSAGE);
+            }
+            account.setUsername(username);
+            JOptionPane.showMessageDialog(null, "Username successfully changed!",
+                    title, JOptionPane.INFORMATION_MESSAGE);
         }
     }
+
+//    private static void teacherPrompt(Account account) {
+//        int selection;
+//        do {
+//            System.out.println(teacherMenu);
+//            selection = scanner.nextInt();
+//            scanner.nextLine();
+//        } while ((selection < 1 || selection > 2));
+//
+//        if (selection == 1) {
+//            classCreate();
+//        } else {
+//            Course c = courseSelect(account);
+//            String forum;
+//            do {
+//                System.out.println("Please type the name of a forum to continue:");
+//                displayForums(c);
+//                forum = scanner.nextLine();
+//            } while (getForum(c, forum) == null);
+//            Forum f = getForum(c, forum);
+//            int sel;
+//            do {
+//                System.out.println(f.toString());
+//                do {
+//                    if (f.getComments().size() < 1) {
+//                        return;
+//                    }
+//                    System.out.println("Please select an option below:");
+//                    System.out.println("1. Reply to an existing comment\n2. Exit");
+//                    sel = scanner.nextInt();
+//                    scanner.nextLine();
+//                } while (sel < 1 || sel > 2);
+//
+//                if (sel == 1) {
+//                    String user;
+//                    System.out.println("Type the username of the comment you wish to reply to.");
+//                    user = scanner.nextLine();
+//                    String content;
+//                    System.out.println("What would you like to reply with?");
+//                    content = scanner.nextLine();
+//                    for (Comment comment : f.getComments()) {
+//                        if (comment.getAuthor().equalsIgnoreCase(user)) {
+//                            comment.getReplies().add(new Reply(account.getUsername(),
+//                                    content, System.currentTimeMillis()));
+//                        }
+//                    }
+//                } else {
+//                    unloadAccounts("accounts.txt");
+//                    unloadCourses("serial.txt");
+//                    return;
+//                }
+//            } while (true);
+//
+//        }
+//    }
 
     private static Course courseSelect(Account account) {
         if (courses.size() < 1 && (account instanceof Teacher)) {
@@ -806,4 +886,3 @@ public class DiscussionBoard extends JComponent implements Runnable {
 
 
 }
-
