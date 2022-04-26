@@ -365,10 +365,28 @@ public class DiscussionBoard extends JComponent implements Runnable {
         JLabel forumTopic = new JLabel("Forum topic: " + forum.getTopic() + "\nComments:");
 
         replyButton = new JButton("Reply to a comment");
+        replyButton.addActionListener(actionListener);
         exitButton = new JButton("Exit");
         exitButton.addActionListener(actionListener);
         voteButton = new JButton("Vote");
         voteButton.addActionListener(actionListener);
+
+        content.add(replyButton);
+        content.add(exitButton);
+        content.add(voteButton);
+
+        //layout for buttons
+        layout.putConstraint(SpringLayout.NORTH, replyButton, 10, SpringLayout.NORTH, content);
+        layout.putConstraint(SpringLayout.WEST, replyButton, 70, SpringLayout.WEST, content);
+        layout.putConstraint(SpringLayout.NORTH, exitButton, 10, SpringLayout.NORTH, content);
+        layout.putConstraint(SpringLayout.WEST, exitButton, 20, SpringLayout.WEST, content);
+        layout.putConstraint(SpringLayout.NORTH, voteButton, 10, SpringLayout.NORTH, content);
+        layout.putConstraint(SpringLayout.WEST, voteButton, 100, SpringLayout.WEST, content);
+
+        studentForumFrame.setSize(600, 500);
+        studentForumFrame.setLocationRelativeTo(null);
+        studentForumFrame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+        studentForumFrame.setVisible(true);
     }
 
 
