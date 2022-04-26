@@ -214,7 +214,7 @@ public class DiscussionBoard2 extends JComponent implements Runnable {
                     for (int i = 0; i < c.getForums().size(); i++) {
                         forums[i] = c.getForums().get(i).getTopic();
                     }
-                    String forum = (String)JOptionPane.showInputDialog(null, "Select a Course", title,
+                    String forum = (String)JOptionPane.showInputDialog(null, "Select a Forum", title,
                             JOptionPane.QUESTION_MESSAGE, null, forums, forums[0]);
                     showForumTeacher(forum);
                 }
@@ -358,7 +358,7 @@ public class DiscussionBoard2 extends JComponent implements Runnable {
             teacherPrompt(currentUser);
             discussionBoardFrame.setVisible(true);
         } else {
-
+            studentPrompt();
         }
 
     }
@@ -498,7 +498,12 @@ public class DiscussionBoard2 extends JComponent implements Runnable {
         layout.putConstraint(SpringLayout.WEST, createCourse, 233, SpringLayout.WEST, content);
         layout.putConstraint(SpringLayout.NORTH, chooseCourse, 150, SpringLayout.NORTH, content);
         layout.putConstraint(SpringLayout.WEST, chooseCourse, 231, SpringLayout.WEST, content);
+    }
 
+    private void studentPrompt() {
+        JLabel welcome = new JLabel("Welcome to the Discussion Board!");
+        Container content = discussionBoardFrame.getContentPane();
+        SpringLayout layout = new SpringLayout();
 
 
     }
