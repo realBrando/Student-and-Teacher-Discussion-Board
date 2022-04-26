@@ -92,6 +92,7 @@ public class DiscussionBoard extends JComponent implements Runnable {
     public void run() {
 
         loadAccounts("accounts.txt");
+        loadCourses("serial.txt");
 
         welcomeFrame= new JFrame(title);
         Container content = welcomeFrame.getContentPane();
@@ -295,11 +296,6 @@ public class DiscussionBoard extends JComponent implements Runnable {
     }
 
     private void showDiscussionBoard() {
-        discussionBoardFrame = new JFrame(title);
-        discussionBoardFrame.setSize(600, 500);
-        discussionBoardFrame.setLocationRelativeTo(null);
-        discussionBoardFrame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-
         if (currentUser instanceof Teacher) {
             teacherPrompt(currentUser);
         } else {
@@ -310,7 +306,7 @@ public class DiscussionBoard extends JComponent implements Runnable {
     private void studentPrompt() {
         String[] coursesArr = new String[courses.size()];
         for (int i = 0; i < courses.size(); i++) {
-            coursesArr[i] = String.valueOf(courses.get(i));
+            coursesArr[i] = courses.get(i).getName();
         }
         String courseSelected;
         courseSelected = (String) JOptionPane.showInputDialog(null,
@@ -321,7 +317,7 @@ public class DiscussionBoard extends JComponent implements Runnable {
 
         String[] forumArr = new String[c.getForums().size()];
         for (int i = 0; i < c.getForums().size(); i++) {
-            forumArr[i] = String.valueOf(c.getForums().get(i));
+            forumArr[i] = c.getForums().get(i).getTopic();
         }
         String forumSelected;
         forumSelected = (String) JOptionPane.showInputDialog(null,
@@ -334,6 +330,11 @@ public class DiscussionBoard extends JComponent implements Runnable {
     }
 
     private void teacherPrompt(Account account) {
+        discussionBoardFrame = new JFrame(title);
+        discussionBoardFrame.setSize(600, 500);
+        discussionBoardFrame.setLocationRelativeTo(null);
+        discussionBoardFrame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+
         JLabel welcome = new JLabel("Welcome to the Discussion Board!");
         Container content = discussionBoardFrame.getContentPane();
         SpringLayout layout = new SpringLayout();
