@@ -4,6 +4,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -28,6 +29,10 @@ public class DiscussionBoard2 extends JComponent implements Runnable {
     private static Scanner scanner = new Scanner(System.in);
 
     private DiscussionBoard discussionBoard;
+
+    private static String host;
+
+    private static int port;
 
     private static final String title = "Discussion Board";
     private static final String welcome = "Welcome to the discussion board!";
@@ -85,6 +90,18 @@ public class DiscussionBoard2 extends JComponent implements Runnable {
     String currentForum;
 
     public static void main(String[] args) {
+        while (true) {
+            showWelcomeMessage();
+            showHostMessage();
+            showPortMessage();
+            try {
+                Socket socket = new Socket(host, port);
+                break;
+            } catch (Exception e) {
+                error();
+            }
+        }
+        allGood();
         SwingUtilities.invokeLater(new DiscussionBoard2());
     }
 
@@ -282,6 +299,35 @@ public class DiscussionBoard2 extends JComponent implements Runnable {
             unloadCourses("serial.txt");
         }
     };
+
+    private static void showWelcomeMessage() {
+        JOptionPane.showMessageDialog(null, "Welcome",
+                "Client", JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    private static void showHostMessage() {
+        host = JOptionPane.showInputDialog(null, "What is the hostname?",
+                "Client", JOptionPane.QUESTION_MESSAGE);
+    }
+
+    private static void showPortMessage() {
+        Integer portTemp;
+        portTemp = Integer.parseInt(JOptionPane.showInputDialog(null, "What is the port number?",
+                "Client", JOptionPane.QUESTION_MESSAGE));
+        port = portTemp;
+    }
+
+    private static void error() {
+        Integer portTemp;
+        portTemp = Integer.parseInt(JOptionPane.showInputDialog(null, "Invalid port or host",
+                "Client", JOptionPane.ERROR_MESSAGE));
+        port = portTemp;
+    }
+
+    private static void allGood() {
+        JOptionPane.showMessageDialog(null, "Connection Successful",
+                "Client", JOptionPane.INFORMATION_MESSAGE);
+    }
 
     private void createAccount() {
 
