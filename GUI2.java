@@ -1,4 +1,5 @@
 import javax.swing.*;
+import javax.swing.text.AbstractDocument;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -79,6 +80,9 @@ public class DiscussionBoard2 extends JComponent implements Runnable {
     JFrame forumFrame;
     JButton exitButton;
     JButton deleteForumButton;
+    JButton newReplyButton;
+    Course currentCourse;
+    String currentForum;
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new DiscussionBoard2());
@@ -206,17 +210,36 @@ public class DiscussionBoard2 extends JComponent implements Runnable {
                 boolean cont = true;
                 try {
                     c = courseSelect(currentUser);
+                    currentCourse = c;
                 } catch(NullPointerException n) {
                     cont = false;
                 }
                 if (c != null) {
-                    String[] forums = new String[c.getForums().size()];
-                    for (int i = 0; i < c.getForums().size(); i++) {
-                        forums[i] = c.getForums().get(i).getTopic();
+                    if (c.getForums().size() == 0) {
+                        int choice = 0;
+                        do {
+                            String forumName = JOptionPane.showInputDialog(null, "Enter a forum topic",
+                                    title,JOptionPane.INFORMATION_MESSAGE);
+                            Forum f = new Forum(forumName);
+                            c.getForums().add(f);
+                            choice = JOptionPane.showConfirmDialog(null, "Would you like to add another forum?",
+                                    title, JOptionPane.YES_NO_OPTION);
+                        } while (choice == JOptionPane.YES_OPTION);
+
+                    } else {
+                        String[] forums = new String[c.getForums().size()];
+                        for (int i = 0; i < c.getForums().size(); i++) {
+                            forums[i] = c.getForums().get(i).getTopic();
+                        }
+                        currentForum = (String)JOptionPane.showInputDialog(null, "Select a Forum", title,
+                                JOptionPane.QUESTION_MESSAGE, null, forums, forums[0]);
+                        if (currentUser instanceof Teacher) {
+                            showForumTeacher(currentForum);
+                        }
+                        else if (currentUser instanceof Student) {
+                            showForumStudent(currentForum);
+                        }
                     }
-                    String forum = (String)JOptionPane.showInputDialog(null, "Select a Forum", title,
-                            JOptionPane.QUESTION_MESSAGE, null, forums, forums[0]);
-                    showForumTeacher(forum);
                 }
 
             }
@@ -231,6 +254,16 @@ public class DiscussionBoard2 extends JComponent implements Runnable {
                 }
             }
             if (e.getSource() == deleteForumButton) {
+                int sure = JOptionPane.showConfirmDialog(null,
+                        "Are you sure you want to delete this forum?", title, JOptionPane.YES_NO_OPTION);
+                if (sure == JOptionPane.YES_OPTION) {
+                    removeForum(currentCourse, currentForum);
+                    forumFrame.dispose();
+                }
+                String mess = String.format("Forum %s successfully removed!", currentForum);
+                JOptionPane.showMessageDialog(null, mess, title, JOptionPane.INFORMATION_MESSAGE);
+            }
+            if (e.getSource() == newReplyButton) {
 
             }
             unloadCourses("serial.txt");
@@ -306,6 +339,32 @@ public class DiscussionBoard2 extends JComponent implements Runnable {
         forumFrame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         forumFrame.setVisible(true);
     }
+
+    private void showForumStudent(String forumName) {
+        forumFrame = new JFrame(forumName);
+        Container content = forumFrame.getContentPane();
+        SpringLayout layout = new SpringLayout();
+        content.setLayout(layout);
+
+        exitButton = new JButton("Exit");
+        exitButton.addActionListener(actionListener);
+        newReplyButton = new JButton("New Reply");
+        newReplyButton.addActionListener(actionListener);
+        content.add(exitButton);
+        content.add(newReplyButton);
+
+        //Location for buttons
+        layout.putConstraint(SpringLayout.NORTH, exitButton, 0, SpringLayout.NORTH, content);
+        layout.putConstraint(SpringLayout.WEST, exitButton, 0, SpringLayout.WEST, content);
+        layout.putConstraint(SpringLayout.NORTH, newReplyButton, 0, SpringLayout.NORTH, content);
+        layout.putConstraint(SpringLayout.EAST, newReplyButton, 0, SpringLayout.EAST, content);
+
+        forumFrame.setSize(600, 500);
+        forumFrame.setLocationRelativeTo(null);
+        forumFrame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+        forumFrame.setVisible(true);
+
+    }
     private void showActionMenu() {
         actionMenuFrame = new JFrame("Menu");
         Container content = actionMenuFrame.getContentPane();
@@ -358,7 +417,8 @@ public class DiscussionBoard2 extends JComponent implements Runnable {
             teacherPrompt(currentUser);
             discussionBoardFrame.setVisible(true);
         } else {
-            studentPrompt();
+            studentPrompt(currentUser);
+            discussionBoardFrame.setVisible(true);
         }
 
     }
@@ -500,11 +560,23 @@ public class DiscussionBoard2 extends JComponent implements Runnable {
         layout.putConstraint(SpringLayout.WEST, chooseCourse, 231, SpringLayout.WEST, content);
     }
 
-    private void studentPrompt() {
+    private void studentPrompt(Account account) {
         JLabel welcome = new JLabel("Welcome to the Discussion Board!");
         Container content = discussionBoardFrame.getContentPane();
         SpringLayout layout = new SpringLayout();
+        content.setLayout(layout);
+        chooseCourse = new JButton("Choose a Class");
+        chooseCourse.addActionListener(actionListener);
+        content.add(welcome);
+        content.add(chooseCourse);
 
+        //Layout for Welcome Message
+        layout.putConstraint(SpringLayout.NORTH, welcome, 30, SpringLayout.NORTH, content);
+        layout.putConstraint(SpringLayout.WEST, welcome, 190, SpringLayout.WEST, content);
+
+        //Layout for Buttons
+        layout.putConstraint(SpringLayout.NORTH, chooseCourse, 100, SpringLayout.NORTH, content);
+        layout.putConstraint(SpringLayout.WEST, chooseCourse, 233, SpringLayout.WEST, content);
 
     }
 
