@@ -294,7 +294,9 @@ public class DiscussionBoard2 extends JComponent implements Runnable {
                 JOptionPane.showMessageDialog(null, mess, title, JOptionPane.INFORMATION_MESSAGE);
             }
             if (e.getSource() == newReplyButton) {
-
+                Student stud = (Student) currentUser;
+                JLabel comment = newReply(stud);
+                showForumStudent(currentForum, comment);
             }
             unloadCourses("serial.txt");
         }
@@ -409,6 +411,36 @@ public class DiscussionBoard2 extends JComponent implements Runnable {
         exitButton.addActionListener(actionListener);
         newReplyButton = new JButton("New Reply");
         newReplyButton.addActionListener(actionListener);
+        content.add(exitButton);
+        content.add(newReplyButton);
+
+        //Location for buttons
+        layout.putConstraint(SpringLayout.NORTH, exitButton, 0, SpringLayout.NORTH, content);
+        layout.putConstraint(SpringLayout.WEST, exitButton, 0, SpringLayout.WEST, content);
+        layout.putConstraint(SpringLayout.NORTH, newReplyButton, 0, SpringLayout.NORTH, content);
+        layout.putConstraint(SpringLayout.EAST, newReplyButton, 0, SpringLayout.EAST, content);
+
+        forumFrame.setSize(600, 500);
+        forumFrame.setLocationRelativeTo(null);
+        forumFrame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+        forumFrame.setVisible(true);
+
+    }
+    private void showForumStudent(String forumName, JLabel comment) {
+        forumFrame = new JFrame(forumName);
+        Container content = forumFrame.getContentPane();
+        SpringLayout layout = new SpringLayout();
+        content.setLayout(layout);
+
+        exitButton = new JButton("Exit");
+        exitButton.addActionListener(actionListener);
+        newReplyButton = new JButton("New Reply");
+        newReplyButton.addActionListener(actionListener);
+        if (comment != null) {
+            content.add(comment);
+            layout.putConstraint(SpringLayout.NORTH, comment, 100, SpringLayout.NORTH, content);
+            layout.putConstraint(SpringLayout.WEST, comment, 10, SpringLayout.WEST,content);
+        }
         content.add(exitButton);
         content.add(newReplyButton);
 
@@ -658,6 +690,15 @@ public class DiscussionBoard2 extends JComponent implements Runnable {
                     JOptionPane.QUESTION_MESSAGE, null, temp, temp[0]);
         }
         return getCourse(name);
+    }
+    private JLabel newReply(Student student) {
+        String rep = JOptionPane.showInputDialog(null, "Type your Reply to the Forum Topic",
+                title, JOptionPane.INFORMATION_MESSAGE);
+        Comment comment = new Comment(new ArrayList<>(), System.currentTimeMillis(), student.getUsername(), rep);
+        Forum f = getForum(currentCourse, currentForum);
+        f.getComments().add(comment);
+        JLabel newComment = new JLabel(f.toString());
+        return newComment;
     }
 
     private static void classCreate() {
