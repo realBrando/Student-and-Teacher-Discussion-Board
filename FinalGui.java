@@ -1,12 +1,9 @@
 import javax.swing.*;
-import javax.swing.text.AbstractDocument;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Scanner;
 
 /**
@@ -21,13 +18,9 @@ import java.util.Scanner;
  */
 public class DiscussionBoard2 extends JComponent implements Runnable {
 
-    private static ArrayList<Account> accounts = new ArrayList<>();
-
-    private static ArrayList<Course> courses = new ArrayList<>();
+    private static final Object gatekeeper = new Object();
 
     private static Scanner scanner = new Scanner(System.in);
-
-    private DiscussionBoard discussionBoard;
 
     private static final String title = "Discussion Board";
     private static final String welcome = "Welcome to the discussion board!";
@@ -161,7 +154,9 @@ public class DiscussionBoard2 extends JComponent implements Runnable {
                     JOptionPane.showMessageDialog(null, "Invalid credentials!" +
                             " Please try again!", title, JOptionPane.ERROR_MESSAGE);
                 } else {
-                    currentUser = getAccount(username);
+                    synchronized (currentUser) {
+                        currentUser = getAccount(username);
+                    }
                     showActionMenu();
                 }
             }
@@ -178,11 +173,17 @@ public class DiscussionBoard2 extends JComponent implements Runnable {
                             JOptionPane.ERROR_MESSAGE);
                 } else {
                     if (studentBox.isSelected()) {
-                        currentUser = new Student(username, password);
+                        synchronized (gatekeeper) {
+                            currentUser = new Student(username, password);
+                        }
                     } else if (teacherBox.isSelected()) {
-                        currentUser = new Teacher(username, password);
+                        synchronized (gatekeeper) {
+                            currentUser = new Teacher(username, password);
+                        }
                     }
-                    accounts.add(currentUser);
+                    synchronized (gatekeeper) {
+                        Server.accounts.add(currentUser);
+                    }
                     unloadAccounts("accounts.txt");
                     JOptionPane.showMessageDialog(null, "Your account was created!",
                             title, JOptionPane.INFORMATION_MESSAGE);
@@ -190,7 +191,9 @@ public class DiscussionBoard2 extends JComponent implements Runnable {
                 }
             }
             if (e.getSource() == deleteAccountButton) {
-                accounts.remove(currentUser);
+                synchronized (gatekeeper) {
+                    Server.accounts.remove(currentUser);
+                }
                 JOptionPane.showMessageDialog(null, "Your Account has been deleted",
                         title, JOptionPane.INFORMATION_MESSAGE);
                 unloadAccounts("accounts.txt");
@@ -198,12 +201,16 @@ public class DiscussionBoard2 extends JComponent implements Runnable {
                 actionMenuFrame.dispose();
             }
             if (e.getSource() == changeUsernameButton) {
-                changeUsername(currentUser);
+                synchronized (gatekeeper) {
+                    changeUsername(currentUser);
+                }
                 actionMenuFrame.dispose();
                 showActionMenu();
             }
             if (e.getSource() == changePasswordButton) {
-                changePassword(currentUser);
+                synchronized (gatekeeper) {
+                    changePassword(currentUser);
+                }
             }
             if (e.getSource() == goToDBButton) {
                 showDiscussionBoard();
@@ -213,7 +220,9 @@ public class DiscussionBoard2 extends JComponent implements Runnable {
                 Course c = new Course("");
                 boolean cont = true;
                 try {
-                    c = courseSelect(currentUser);
+                    synchronized (gatekeeper) {
+                        c = courseSelect(currentUser);
+                    }
                     currentCourse = c;
                 } catch(NullPointerException n) {
                     cont = false;
@@ -237,11 +246,12 @@ public class DiscussionBoard2 extends JComponent implements Runnable {
                         }
                         currentForum = (String)JOptionPane.showInputDialog(null, "Select a Forum", title,
                                 JOptionPane.QUESTION_MESSAGE, null, forums, forums[0]);
-                        if (currentUser instanceof Teacher) {
-                            showForumTeacher(currentForum);
-                        }
-                        else if (currentUser instanceof Student) {
-                            showForumStudent(currentForum, def);
+                        synchronized (gatekeeper) {
+                            if (currentUser instanceof Teacher) {
+                                showForumTeacher(currentForum);
+                            } else if (currentUser instanceof Student) {
+                                showForumStudent(currentForum, def);
+                            }
                         }
                     }
                 }
@@ -277,16 +287,21 @@ public class DiscussionBoard2 extends JComponent implements Runnable {
                     String name = JOptionPane.showInputDialog(null, "Enter your file name", title,
                             JOptionPane.INFORMATION_MESSAGE);
                     String content = studentReadFile(name);
-                    Student stu = (Student) currentUser;
+                    Student stu;
+                    synchronized (gatekeeper) {
+                        stu = (Student) currentUser;
+                    }
                     Forum f = getForum(currentCourse, currentForum);
-                    Comment comment = new Comment(new ArrayList<>(), System.currentTimeMillis(),
-                            stu.getUsername(), content);
+                    Comment comment = new Comment(new ArrayList<>(), System.currentTimeMillis(), stu.getUsername(), content);
                     f.getComments().add(comment);
                     JLabel comments = new JLabel(comment.toString());
                     forumFrame.dispose();
                     showForumStudent(currentForum, comments);
                 } else if (choice == JOptionPane.NO_OPTION) {
-                    Student stud = (Student) currentUser;
+                    Student stud;
+                    synchronized (gatekeeper) {
+                        stud = (Student) currentUser;
+                    }
                     JLabel comment = newReply(stud);
                     if (comment != null) {
                         forumFrame.dispose();
@@ -307,7 +322,7 @@ public class DiscussionBoard2 extends JComponent implements Runnable {
                 choose = choose - 1;
                 choice = String.valueOf(choose);
                 if (choice != null) {
-                     comment = JOptionPane.showInputDialog(null, "Enter your comment", title,
+                    comment = JOptionPane.showInputDialog(null, "Enter your comment", title,
                             JOptionPane.INFORMATION_MESSAGE);
                 }
                 Comment commentedOn = f.getComments().get(Integer.parseInt(choice));
@@ -468,7 +483,10 @@ public class DiscussionBoard2 extends JComponent implements Runnable {
         SpringLayout layout = new SpringLayout();
         content.setLayout(layout);
 
-        JLabel welcome = new JLabel(String.format("Welcome, %s!\n", currentUser.getUsername()));
+        JLabel welcome;
+        synchronized (gatekeeper) {
+            welcome = new JLabel(String.format("Welcome, %s!\n", currentUser.getUsername()));
+        }
         deleteAccountButton = new JButton("Delete account");
         deleteAccountButton.addActionListener(actionListener);
         changePasswordButton = new JButton("Change password");
@@ -510,23 +528,27 @@ public class DiscussionBoard2 extends JComponent implements Runnable {
         discussionBoardFrame.setLocationRelativeTo(null);
         discussionBoardFrame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 
-        if (currentUser instanceof Teacher) {
-            teacherPrompt(currentUser);
-            discussionBoardFrame.setVisible(true);
-        } else {
-            studentPrompt(currentUser);
-            discussionBoardFrame.setVisible(true);
+        synchronized (gatekeeper) {
+            if (currentUser instanceof Teacher) {
+                teacherPrompt(currentUser);
+                discussionBoardFrame.setVisible(true);
+            } else {
+                studentPrompt(currentUser);
+                discussionBoardFrame.setVisible(true);
+            }
         }
 
     }
     private void addComment(String comment, Comment commented) {
-        commented.getReplies().add(new Reply(currentUser.getUsername(), comment, System.currentTimeMillis()));
-        forumFrame.dispose();
-        JLabel def = new JLabel("");
-        if (currentUser instanceof Student) {
-            showForumStudent(currentForum, def);
-        } else if (currentUser instanceof Teacher) {
-            showForumTeacher(currentForum);
+        synchronized (gatekeeper) {
+            commented.getReplies().add(new Reply(currentUser.getUsername(), comment, System.currentTimeMillis()));
+            forumFrame.dispose();
+            JLabel def = new JLabel("");
+            if (currentUser instanceof Student) {
+                showForumStudent(currentForum, def);
+            } else if (currentUser instanceof Teacher) {
+                showForumTeacher(currentForum);
+            }
         }
 
     }
@@ -544,7 +566,7 @@ public class DiscussionBoard2 extends JComponent implements Runnable {
                 } else {
                     account = new Teacher(arr[0], arr[1]);
                 }
-                accounts.add(account);
+                Server.accounts.add(account);
                 line = reader.readLine();
             }
         } catch (Exception e) {
@@ -556,7 +578,7 @@ public class DiscussionBoard2 extends JComponent implements Runnable {
         File f = new File(outputFile);
         try {
             PrintWriter writer = new PrintWriter(new FileWriter(f));
-            for (Account account : accounts) {
+            for (Account account : Server.accounts) {
                 writer.println(account.getUsername() + "," + account.getPassword() + "," +
                         (account instanceof Teacher ? "t" : "s"));
             }
@@ -571,7 +593,7 @@ public class DiscussionBoard2 extends JComponent implements Runnable {
         try {
             FileOutputStream fos = new FileOutputStream(outputFile);
             ObjectOutputStream oos = new ObjectOutputStream(fos);
-            oos.writeObject(courses);
+            oos.writeObject(Server.courses);
             oos.flush();
             oos.close();
         } catch (IOException e) {
@@ -587,7 +609,7 @@ public class DiscussionBoard2 extends JComponent implements Runnable {
         try {
             FileInputStream fis = new FileInputStream(inputFile);
             ObjectInputStream ois = new ObjectInputStream(fis);
-            courses = (ArrayList<Course>) ois.readObject();
+            Server.courses = (ArrayList<Course>) ois.readObject();
             ois.close();
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
@@ -595,7 +617,7 @@ public class DiscussionBoard2 extends JComponent implements Runnable {
     }
 
     private static boolean checkLogin(String username, String password) {
-        for (Account a : accounts) {
+        for (Account a : Server.accounts) {
             if (a.getUsername().equalsIgnoreCase(username)) {
                 if (a.getPassword().equals(password)) {
                     return true;
@@ -606,7 +628,7 @@ public class DiscussionBoard2 extends JComponent implements Runnable {
     }
 
     private static Account getAccount(String username) {
-        for (Account a : accounts) {
+        for (Account a : Server.accounts) {
             if (a.getUsername().equalsIgnoreCase(username)) {
                 return a;
             }
@@ -695,13 +717,13 @@ public class DiscussionBoard2 extends JComponent implements Runnable {
 
     private static Course courseSelect(Account account) {
         String name = "";
-        if (courses.size() < 1 && (account instanceof Teacher)) {
-           JOptionPane.showMessageDialog(null, "ERROR! There aren't any courses to choose from," +
-                   " please create a course!", title, JOptionPane.ERROR_MESSAGE);
+        if (Server.courses.size() < 1 && (account instanceof Teacher)) {
+            JOptionPane.showMessageDialog(null, "ERROR! There aren't any courses to choose from," +
+                    " please create a course!", title, JOptionPane.ERROR_MESSAGE);
         } else {
-            String[] temp = new String[courses.size()];
-            for (int i = 0; i < courses.size(); i++) {
-                temp[i] = courses.get(i).getName();
+            String[] temp = new String[Server.courses.size()];
+            for (int i = 0; i < Server.courses.size(); i++) {
+                temp[i] = Server.courses.get(i).getName();
             }
             name = (String)JOptionPane.showInputDialog(null, "Select a Course", title,
                     JOptionPane.QUESTION_MESSAGE, null, temp, temp[0]);
@@ -714,7 +736,9 @@ public class DiscussionBoard2 extends JComponent implements Runnable {
         String forumName;
         //choice = JOptionPane.show
         Course c = new Course("");
-        c = courseSelect(currentUser);
+        synchronized (gatekeeper) {
+            c = courseSelect(currentUser);
+        }
         choice = JOptionPane.showConfirmDialog(null, "Would you like to import a forum topic from a file?",
                 title, JOptionPane.YES_NO_OPTION);
         if (choice == JOptionPane.YES_OPTION) {
@@ -742,15 +766,15 @@ public class DiscussionBoard2 extends JComponent implements Runnable {
         int choice = 0;
         name = JOptionPane.showInputDialog(null, "Please enter a name for the course", title,
                 JOptionPane.INFORMATION_MESSAGE);
-       // System.out.println("Please enter a name for the course:");
-       // name = scanner.nextLine();
+        // System.out.println("Please enter a name for the course:");
+        // name = scanner.nextLine();
         if (name != null) {
-            if (courses.contains(getCourse(name))) {
+            if (Server.courses.contains(getCourse(name))) {
                 JOptionPane.showMessageDialog(null, "ERROR, that course already exists!", title,
                         JOptionPane.ERROR_MESSAGE);
             } else {
                 Course c = new Course(name);
-                courses.add(c);
+                Server.courses.add(c);
                 JOptionPane.showMessageDialog(null, "Success, your course has been added!", title,
                         JOptionPane.INFORMATION_MESSAGE);
                 if (c.getForums().size() == 0) {
@@ -919,7 +943,7 @@ public class DiscussionBoard2 extends JComponent implements Runnable {
     }
 
     private static void displayCourses() {
-        for (Course course : courses) {
+        for (Course course : Server.courses) {
             System.out.println("- " + course.getName());
         }
     }
@@ -938,7 +962,7 @@ public class DiscussionBoard2 extends JComponent implements Runnable {
     }
 
     private static Course getCourse(String name) {
-        for (Course c : courses) {
+        for (Course c : Server.courses) {
             if (c.getName().equals(name)) {
                 return c;
             }
