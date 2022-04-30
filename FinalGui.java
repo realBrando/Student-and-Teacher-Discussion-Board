@@ -75,6 +75,7 @@ public class DiscussionBoard2 extends JComponent implements Runnable {
     //Teacher Board
     JButton createCourse;
     JButton chooseCourse;
+    JButton createForum;
 
     //Discussion Forum
     JFrame forumFrame;
@@ -249,6 +250,9 @@ public class DiscussionBoard2 extends JComponent implements Runnable {
             if (e.getSource() == createCourse) {
                 classCreate();
             }
+            if (e.getSource() == createForum) {
+                forumCreate();
+            }
             if (e.getSource() == exitButton) {
                 int sure = JOptionPane.showConfirmDialog(null, "Are you sure you want to exit?",
                         title, JOptionPane.YES_NO_OPTION);
@@ -267,10 +271,28 @@ public class DiscussionBoard2 extends JComponent implements Runnable {
                 JOptionPane.showMessageDialog(null, mess, title, JOptionPane.INFORMATION_MESSAGE);
             }
             if (e.getSource() == newReplyButton) {
-                Student stud = (Student) currentUser;
-                JLabel comment = newReply(stud);
-                forumFrame.dispose();
-                showForumStudent(currentForum, comment);
+                int choice = JOptionPane.showConfirmDialog(null, "Would you like to import a reply from a file?",
+                        title, JOptionPane.YES_NO_OPTION);
+                if (choice == JOptionPane.YES_OPTION) {
+                    String name = JOptionPane.showInputDialog(null, "Enter your file name", title,
+                            JOptionPane.INFORMATION_MESSAGE);
+                    String content = studentReadFile(name);
+                    Student stu = (Student) currentUser;
+                    Forum f = getForum(currentCourse, currentForum);
+                    Comment comment = new Comment(new ArrayList<>(), System.currentTimeMillis(),
+                            stu.getUsername(), content);
+                    f.getComments().add(comment);
+                    JLabel comments = new JLabel(comment.toString());
+                    forumFrame.dispose();
+                    showForumStudent(currentForum, comments);
+                } else if (choice == JOptionPane.NO_OPTION) {
+                    Student stud = (Student) currentUser;
+                    JLabel comment = newReply(stud);
+                    if (comment != null) {
+                        forumFrame.dispose();
+                        showForumStudent(currentForum, comment);
+                    }
+                }
             }
             if (e.getSource() == commentButton) {
                 Forum f = getForum(currentCourse, currentForum);
@@ -501,7 +523,12 @@ public class DiscussionBoard2 extends JComponent implements Runnable {
         commented.getReplies().add(new Reply(currentUser.getUsername(), comment, System.currentTimeMillis()));
         forumFrame.dispose();
         JLabel def = new JLabel("");
-        showForumStudent(currentForum, def);
+        if (currentUser instanceof Student) {
+            showForumStudent(currentForum, def);
+        } else if (currentUser instanceof Teacher) {
+            showForumTeacher(currentForum);
+        }
+
     }
     private static void loadAccounts(String inputFile) {
         File f = new File(inputFile);
@@ -626,9 +653,12 @@ public class DiscussionBoard2 extends JComponent implements Runnable {
         createCourse.addActionListener(actionListener);
         chooseCourse = new JButton("Choose a Class");
         chooseCourse.addActionListener(actionListener);
+        createForum = new JButton("Create New Forum");
+        createForum.addActionListener(actionListener);
         content.add(welcome);
         content.add(createCourse);
         content.add(chooseCourse);
+        content.add(createForum);
 
         //Layout for Welcome Message
         layout.putConstraint(SpringLayout.NORTH, welcome, 30, SpringLayout.NORTH, content);
@@ -639,6 +669,8 @@ public class DiscussionBoard2 extends JComponent implements Runnable {
         layout.putConstraint(SpringLayout.WEST, createCourse, 233, SpringLayout.WEST, content);
         layout.putConstraint(SpringLayout.NORTH, chooseCourse, 150, SpringLayout.NORTH, content);
         layout.putConstraint(SpringLayout.WEST, chooseCourse, 231, SpringLayout.WEST, content);
+        layout.putConstraint(SpringLayout.NORTH, createForum, 200, SpringLayout.NORTH, content);
+        layout.putConstraint(SpringLayout.WEST, createForum, 224, SpringLayout.WEST, content);
     }
 
     private void studentPrompt(Account account) {
@@ -676,6 +708,34 @@ public class DiscussionBoard2 extends JComponent implements Runnable {
         }
         return getCourse(name);
     }
+    private void forumCreate() {
+        String name;
+        int choice;
+        String forumName;
+        //choice = JOptionPane.show
+        Course c = new Course("");
+        c = courseSelect(currentUser);
+        choice = JOptionPane.showConfirmDialog(null, "Would you like to import a forum topic from a file?",
+                title, JOptionPane.YES_NO_OPTION);
+        if (choice == JOptionPane.YES_OPTION) {
+            name = JOptionPane.showInputDialog(null, "Enter the file name:", title,
+                    JOptionPane.INFORMATION_MESSAGE);
+            try {
+                forumName = teacherReadFile(name);
+                Forum f = new Forum(forumName);
+                c.getForums().add(f);
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(null, "ERROR! FILE NOT FOUND!", title,
+                        JOptionPane.ERROR_MESSAGE);
+            }
+        } else {
+            name = JOptionPane.showInputDialog(null, "Enter the new Forum Name: ", title,
+                    JOptionPane.INFORMATION_MESSAGE);
+            Forum f = new Forum(name);
+            c.getForums().add(f);
+            //TODO Check if Forum already exists
+        }
+    }
 
     private static void classCreate() {
         String name;
@@ -711,11 +771,16 @@ public class DiscussionBoard2 extends JComponent implements Runnable {
     private JLabel newReply(Student student) {
         String rep = JOptionPane.showInputDialog(null, "Type your Reply to the Forum Topic",
                 title, JOptionPane.INFORMATION_MESSAGE);
-        Comment comment = new Comment(new ArrayList<>(), System.currentTimeMillis(), student.getUsername(), rep);
-        Forum f = getForum(currentCourse, currentForum);
-        f.getComments().add(comment);
-        JLabel newComment = new JLabel(comment.toString());
-        return newComment;
+        if (rep != null) {
+            Comment comment = new Comment(new ArrayList<>(), System.currentTimeMillis(), student.getUsername(), rep);
+            Forum f = getForum(currentCourse, currentForum);
+            f.getComments().add(comment);
+            JLabel newComment = new JLabel(comment.toString());
+            return newComment;
+        } else {
+            JLabel blank = new JLabel("");
+            return blank;
+        }
     }
 
     private static void forumMenu(Course c) {
