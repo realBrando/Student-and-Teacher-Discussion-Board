@@ -9,9 +9,18 @@
  *
  */
 public class Student extends Account {
+    private double grade;
 
     public Student(String username, String password) {
         super(username, password);
+        grade = -1;
     }
 
+    public double getGrade() {
+        return grade;
+    }
+
+    public void setGrade(double grade) {
+        this.grade = grade;
+    }
 }
