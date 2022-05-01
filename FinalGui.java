@@ -88,7 +88,7 @@ public class DiscussionBoard2 extends JComponent implements Runnable {
         loadAccounts("accounts.txt");
         loadCourses("serial.txt");
 
-        welcomeFrame= new JFrame(title);
+        welcomeFrame = new JFrame(title);
         Container content = welcomeFrame.getContentPane();
         SpringLayout layout = new SpringLayout();
         content.setLayout(layout);
