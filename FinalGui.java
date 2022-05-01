@@ -65,6 +65,7 @@ public class DiscussionBoard2 extends JComponent implements Runnable {
 
     //Discussion Board
     JFrame discussionBoardFrame;
+    
     //Teacher Board
     JButton createCourse;
     JButton chooseCourse;
