@@ -3,6 +3,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -22,6 +23,10 @@ public class DiscussionBoard2 extends JComponent implements Runnable {
 
     private static Scanner scanner = new Scanner(System.in);
 
+    private static String host;
+
+    private static int port;
+
     private static final String title = "Discussion Board";
     private static final String welcome = "Welcome to the discussion board!";
     //            "\n1. Create an account\n2. Login to an existing account";
@@ -39,7 +44,7 @@ public class DiscussionBoard2 extends JComponent implements Runnable {
             "1. Create a forum\n2. Delete a forum\n3. Go to forum";
 
     //current user
-    Account currentUser = new Account("", "");
+    Account currentUser;
 
     //welcome JFrame
     JFrame welcomeFrame;
@@ -78,10 +83,6 @@ public class DiscussionBoard2 extends JComponent implements Runnable {
     Course currentCourse;
     String currentForum;
     JButton commentButton;
-    JButton gradingButton;
-    JButton assignGrade;
-    JButton seeGrade;
-    String author;
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new DiscussionBoard2());
@@ -91,6 +92,16 @@ public class DiscussionBoard2 extends JComponent implements Runnable {
 
         loadAccounts("accounts.txt");
         loadCourses("serial.txt");
+
+        showWelcomeMessage();
+        showHostMessage();
+        showPortMessage();
+        
+        try {
+            Socket socket = new Socket(host, port);
+        } catch (Exception e) {
+            error();
+        }
 
         welcomeFrame= new JFrame(title);
         Container content = welcomeFrame.getContentPane();
@@ -158,7 +169,7 @@ public class DiscussionBoard2 extends JComponent implements Runnable {
                     JOptionPane.showMessageDialog(null, "Invalid credentials!" +
                             " Please try again!", title, JOptionPane.ERROR_MESSAGE);
                 } else {
-                    synchronized (currentUser) {
+                    synchronized (gatekeeper) {
                         currentUser = getAccount(username);
                     }
                     showActionMenu();
@@ -333,60 +344,6 @@ public class DiscussionBoard2 extends JComponent implements Runnable {
                 addComment(comment,commentedOn);
 
             }
-            if (e.getSource() == gradingButton) {
-                Forum f = getForum(currentCourse, currentForum);
-                ArrayList<String> usernames = new ArrayList<>();
-                ArrayList<String> tempList = new ArrayList<>();
-                for (int i = 0; i < f.getComments().size(); i++) {
-                    usernames.add(f.getComments().get(i).getAuthor());
-                }
-                int a = usernames.size()-1;
-                for (int i = 0; i < usernames.size() - 1; i++) {
-                    if (i == 0) {
-                        tempList.add(usernames.get(i));
-                    } else if (!(usernames.get(i).equals(usernames.get(i+1)))){
-                        tempList.add(usernames.get(i+1));
-                    }
-                }
-                String[] studs = new String[tempList.size()];
-                for (int i = 0; i < tempList.size(); i++) {
-                    studs[i] = tempList.get(i);
-                }
-                String message = (String) JOptionPane.showInputDialog(null, "Select a student to grade",
-                        title, JOptionPane.QUESTION_MESSAGE, null, studs, studs[0]);
-                author = message;
-                showGradingTeacher(message);
-            }
-            if (e.getSource() == assignGrade) {
-                String g = JOptionPane.showInputDialog(null, "Enter the point value you'd like to assign",
-                        title, JOptionPane.INFORMATION_MESSAGE);
-                double grade = Double.parseDouble(g);
-                System.out.println("here");
-                for (Account account : Server.accounts) {
-                    System.out.println("heer");
-                    if (account.getUsername().equals(author)) {
-                        if (account instanceof Student) {
-                            ((Student) account).setGrade(grade);
-                            System.out.println(account.getUsername());
-                            System.out.println(grade);
-                        }
-                    }
-                }
-            }
-            if (e.getSource() == seeGrade) {
-                double grade;
-                if (currentUser instanceof Student) {
-                        grade = ((Student) currentUser).getGrade();
-                    if (grade >= 0) {
-                        String gradeMessage = String.format("Your grade for this forum is: %f", grade);
-                        JOptionPane.showMessageDialog(null, gradeMessage, title,
-                                JOptionPane.INFORMATION_MESSAGE);
-                    } else {
-                        JOptionPane.showMessageDialog(null, "No grade has been assigned yet",
-                                title, JOptionPane.ERROR_MESSAGE);
-                    }
-                }
-            }
             unloadCourses("serial.txt");
         }
     };
@@ -434,35 +391,6 @@ public class DiscussionBoard2 extends JComponent implements Runnable {
         accountCreationFrame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         accountCreationFrame.setVisible(true);
     }
-    private void showGradingTeacher(String author) {
-        forumFrame = new JFrame(author);
-        Container content = forumFrame.getContentPane();
-        SpringLayout layout = new SpringLayout();
-        content.setLayout(layout);
-        Forum f = getForum(currentCourse, currentForum);
-        int count = 0;
-        for (int i = 0; i < f.getComments().size(); i++) {
-            if (f.getComments().get(i).getAuthor().equals(author)) {
-                count++;
-                JLabel newComment = new JLabel(count + "." + f.getComments().get(i).toString());
-                content.add(newComment);
-                layout.putConstraint(SpringLayout.NORTH, newComment, count*30 + 20, SpringLayout.NORTH, content);
-                layout.putConstraint(SpringLayout.WEST, newComment, 20, SpringLayout.WEST, content);
-            }
-        }
-        assignGrade = new JButton("Assign Grade");
-        assignGrade.addActionListener(actionListener);
-        content.add(assignGrade);
-        //Layout for Button
-        layout.putConstraint(SpringLayout.NORTH, assignGrade, 0, SpringLayout.NORTH, content);
-        layout.putConstraint(SpringLayout.WEST, assignGrade, 230, SpringLayout.WEST, content);
-
-        forumFrame.setSize(600, 500);
-        forumFrame.setLocationRelativeTo(null);
-        forumFrame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-        forumFrame.setVisible(true);
-
-    }
 
     private void showForumTeacher(String forumName) {
         forumFrame = new JFrame(forumName);
@@ -476,8 +404,6 @@ public class DiscussionBoard2 extends JComponent implements Runnable {
         deleteForumButton.addActionListener(actionListener);
         commentButton = new JButton("Reply");
         commentButton.addActionListener(actionListener);
-        gradingButton = new JButton("Grade Student");
-        gradingButton.addActionListener(actionListener);
         Forum f = getForum(currentCourse, currentForum);
         int addedCom = 50;
         for (int i = 0; i < f.getComments().size(); i++){
@@ -499,7 +425,6 @@ public class DiscussionBoard2 extends JComponent implements Runnable {
         content.add(exitButton);
         content.add(deleteForumButton);
         content.add(commentButton);
-        content.add(gradingButton);
 
         //Location for exit and delete buttons
         layout.putConstraint(SpringLayout.NORTH, exitButton, 0, SpringLayout.NORTH, content);
@@ -507,9 +432,7 @@ public class DiscussionBoard2 extends JComponent implements Runnable {
         layout.putConstraint(SpringLayout.NORTH, deleteForumButton, 0, SpringLayout.NORTH, content);
         layout.putConstraint(SpringLayout.EAST, deleteForumButton, 0, SpringLayout.EAST, content);
         layout.putConstraint(SpringLayout.NORTH, commentButton, 0, SpringLayout.NORTH, content);
-        layout.putConstraint(SpringLayout.WEST, commentButton, 150, SpringLayout.WEST, content);
-        layout.putConstraint(SpringLayout.NORTH, gradingButton, 0, SpringLayout.NORTH, content);
-        layout.putConstraint(SpringLayout.WEST, gradingButton, 300, SpringLayout.WEST, content);
+        layout.putConstraint(SpringLayout.WEST, commentButton, 200, SpringLayout.WEST, content);
 
         forumFrame.setSize(600, 500);
         forumFrame.setLocationRelativeTo(null);
@@ -529,8 +452,6 @@ public class DiscussionBoard2 extends JComponent implements Runnable {
         newReplyButton.addActionListener(actionListener);
         commentButton = new JButton("Comment");
         commentButton.addActionListener(actionListener);
-        seeGrade = new JButton("See Grade");
-        seeGrade.addActionListener(actionListener);
         Forum f = getForum(currentCourse, currentForum);
         int addedCom = 50;
         for (int i = 0; i < f.getComments().size(); i++){
@@ -556,7 +477,6 @@ public class DiscussionBoard2 extends JComponent implements Runnable {
         content.add(exitButton);
         content.add(newReplyButton);
         content.add(commentButton);
-        content.add(seeGrade);
 
         //Location for buttons
         layout.putConstraint(SpringLayout.NORTH, exitButton, 0, SpringLayout.NORTH, content);
@@ -564,9 +484,7 @@ public class DiscussionBoard2 extends JComponent implements Runnable {
         layout.putConstraint(SpringLayout.NORTH, newReplyButton, 0, SpringLayout.NORTH, content);
         layout.putConstraint(SpringLayout.EAST, newReplyButton, 0, SpringLayout.EAST, content);
         layout.putConstraint(SpringLayout.NORTH, commentButton, 0, SpringLayout.NORTH, content);
-        layout.putConstraint(SpringLayout.WEST, commentButton, 150, SpringLayout.WEST, content);
-        layout.putConstraint(SpringLayout.NORTH, seeGrade, 0, SpringLayout.NORTH, content);
-        layout.putConstraint(SpringLayout.WEST, seeGrade, 350, SpringLayout.WEST, content);
+        layout.putConstraint(SpringLayout.WEST, commentButton, 250, SpringLayout.WEST, content);
 
         forumFrame.setSize(600, 500);
         forumFrame.setLocationRelativeTo(null);
@@ -836,27 +754,25 @@ public class DiscussionBoard2 extends JComponent implements Runnable {
         synchronized (gatekeeper) {
             c = courseSelect(currentUser);
         }
-        if (c != null) {
-            choice = JOptionPane.showConfirmDialog(null, "Would you like to import a forum topic from a file?",
-                    title, JOptionPane.YES_NO_OPTION);
-            if (choice == JOptionPane.YES_OPTION) {
-                name = JOptionPane.showInputDialog(null, "Enter the file name:", title,
-                        JOptionPane.INFORMATION_MESSAGE);
-                try {
-                    forumName = teacherReadFile(name);
-                    Forum f = new Forum(forumName);
-                    c.getForums().add(f);
-                } catch (Exception e) {
-                    JOptionPane.showMessageDialog(null, "ERROR! FILE NOT FOUND!", title,
-                            JOptionPane.ERROR_MESSAGE);
-                }
-            } else if (choice == JOptionPane.NO_OPTION) {
-                name = JOptionPane.showInputDialog(null, "Enter the new Forum Name: ", title,
-                        JOptionPane.INFORMATION_MESSAGE);
-                Forum f = new Forum(name);
+        choice = JOptionPane.showConfirmDialog(null, "Would you like to import a forum topic from a file?",
+                title, JOptionPane.YES_NO_OPTION);
+        if (choice == JOptionPane.YES_OPTION) {
+            name = JOptionPane.showInputDialog(null, "Enter the file name:", title,
+                    JOptionPane.INFORMATION_MESSAGE);
+            try {
+                forumName = teacherReadFile(name);
+                Forum f = new Forum(forumName);
                 c.getForums().add(f);
-                //TODO Check if Forum already exists
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(null, "ERROR! FILE NOT FOUND!", title,
+                        JOptionPane.ERROR_MESSAGE);
             }
+        } else {
+            name = JOptionPane.showInputDialog(null, "Enter the new Forum Name: ", title,
+                    JOptionPane.INFORMATION_MESSAGE);
+            Forum f = new Forum(name);
+            c.getForums().add(f);
+            //TODO Check if Forum already exists
         }
     }
 
@@ -1128,5 +1044,33 @@ public class DiscussionBoard2 extends JComponent implements Runnable {
         }
         return reply;
     }
-}
 
+    private static void showWelcomeMessage() {
+        JOptionPane.showMessageDialog(null, "Welcome",
+                "Client", JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    private static void showHostMessage() {
+        host = JOptionPane.showInputDialog(null, "What is the hostname?",
+                "Client", JOptionPane.QUESTION_MESSAGE);
+    }
+
+    private static void showPortMessage() {
+        int portTemp;
+        portTemp = Integer.parseInt(JOptionPane.showInputDialog(null, "What is the port number?",
+                "Client", JOptionPane.QUESTION_MESSAGE));
+        port = portTemp;
+    }
+
+    private static void error() {
+        int portTemp;
+        portTemp = Integer.parseInt(JOptionPane.showInputDialog(null, "Invalid port or host",
+                "Client", JOptionPane.ERROR_MESSAGE));
+        port = portTemp;
+    }
+
+    public static void allGood() {
+        JOptionPane.showMessageDialog(null, "Connection Successful",
+                "Client", JOptionPane.INFORMATION_MESSAGE);
+    }
+}
