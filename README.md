@@ -20,5 +20,7 @@ DisussionBoard - This is the class that contains the main method and all the hel
 Fixed Errors in Project 4:
 
 Test Cases - Test cases for user interaction are documented in "Tests.md" and a test case testing the changes of an account's credentials is provided.
+
 Grading - Teachers are now allowed to assign grades based on the responses given which are visible to students.
+
 Replies - Users are now able to reply to a specific discussion forum reply.
