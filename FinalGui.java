@@ -14,7 +14,7 @@ import java.util.Scanner;
  *
  * @author Luca Marinello, Andrew Brandon, Alexandre Moraes, Alice Dinh, Eric Yong
  *
- * @version April 11, 2022
+ * @version May 2, 2022
  *
  */
 public class DiscussionBoard4 extends JComponent implements Runnable {
