@@ -704,6 +704,15 @@ public class DiscussionBoard4 extends JComponent implements Runnable {
     }
     private static void loadAccounts(String inputFile) {
         File f = new File(inputFile);
+        
+        if (!f.exists()) {
+            try {
+                f.createNewFile();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        
         try {
             BufferedReader reader = new BufferedReader(new FileReader(f));
 
