@@ -3,6 +3,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -91,6 +92,16 @@ public class DiscussionBoard4 extends JComponent implements Runnable {
 
         loadAccounts("accounts.txt");
         loadCourses("serial.txt");
+
+        showWelcomeMessage();
+        showHostMessage();
+        showPortMessage();
+
+        try {
+            Socket socket = new Socket(host, port);
+        } catch (Exception e) {
+            error();
+        }
 
         welcomeFrame= new JFrame(title);
         Container content = welcomeFrame.getContentPane();
@@ -250,15 +261,15 @@ public class DiscussionBoard4 extends JComponent implements Runnable {
                         for (int i = 0; i < c.getForums().size(); i++) {
                             forums[i] = c.getForums().get(i).getTopic();
                         }
-                            currentForum = (String)JOptionPane.showInputDialog(null, "Select a Forum", title,
-                                    JOptionPane.QUESTION_MESSAGE, null, forums, forums[0]);
-                                synchronized (gatekeeper) {
-                                    if (currentUser instanceof Teacher) {
-                                        showForumTeacher(currentForum);
-                                    } else if (currentUser instanceof Student) {
-                                        showForumStudent(currentForum, def);
-                                    }
-                                }
+                        currentForum = (String)JOptionPane.showInputDialog(null, "Select a Forum", title,
+                                JOptionPane.QUESTION_MESSAGE, null, forums, forums[0]);
+                        synchronized (gatekeeper) {
+                            if (currentUser instanceof Teacher) {
+                                showForumTeacher(currentForum);
+                            } else if (currentUser instanceof Student) {
+                                showForumStudent(currentForum, def);
+                            }
+                        }
 
 
                     }
@@ -378,15 +389,17 @@ public class DiscussionBoard4 extends JComponent implements Runnable {
             }
             if (e.getSource() == seeGrade) {
                 double grade;
-                if (currentUser instanceof Student) {
+                synchronized (gatekeeper) {
+                    if (currentUser instanceof Student) {
                         grade = ((Student) currentUser).getGrade();
-                    if (grade >= 0) {
-                        String gradeMessage = String.format("Your grade for this forum is: %f", grade);
-                        JOptionPane.showMessageDialog(null, gradeMessage, title,
-                                JOptionPane.INFORMATION_MESSAGE);
-                    } else {
-                        JOptionPane.showMessageDialog(null, "No grade has been assigned yet",
-                                title, JOptionPane.ERROR_MESSAGE);
+                        if (grade >= 0) {
+                            String gradeMessage = String.format("Your grade for this forum is: %f", grade);
+                            JOptionPane.showMessageDialog(null, gradeMessage, title,
+                                    JOptionPane.INFORMATION_MESSAGE);
+                        } else {
+                            JOptionPane.showMessageDialog(null, "No grade has been assigned yet",
+                                    title, JOptionPane.ERROR_MESSAGE);
+                        }
                     }
                 }
             }
@@ -1136,5 +1149,28 @@ public class DiscussionBoard4 extends JComponent implements Runnable {
         }
         return reply;
     }
-}
 
+    private static void showWelcomeMessage() {
+        JOptionPane.showMessageDialog(null, "Welcome",
+                "Client", JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    private static void showHostMessage() {
+        host = JOptionPane.showInputDialog(null, "What is the hostname?",
+                "Client", JOptionPane.QUESTION_MESSAGE);
+    }
+
+    private static void showPortMessage() {
+        int portTemp;
+        portTemp = Integer.parseInt(JOptionPane.showInputDialog(null, "What is the port number?",
+                "Client", JOptionPane.QUESTION_MESSAGE));
+        port = portTemp;
+    }
+
+    private static void error() {
+        int portTemp;
+        portTemp = Integer.parseInt(JOptionPane.showInputDialog(null, "Invalid port or host",
+                "Client", JOptionPane.ERROR_MESSAGE));
+        port = portTemp;
+    }
+}
