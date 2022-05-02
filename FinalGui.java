@@ -17,14 +17,14 @@ import java.util.Scanner;
  * @version April 11, 2022
  *
  */
-public class DiscussionBoard2 extends JComponent implements Runnable {
+public class DiscussionBoard4 extends JComponent implements Runnable {
 
     private static final Object gatekeeper = new Object();
 
     private static Scanner scanner = new Scanner(System.in);
-    
+
     private static String host;
-    
+
     private static int port;
 
     private static final String title = "Discussion Board";
@@ -45,7 +45,7 @@ public class DiscussionBoard2 extends JComponent implements Runnable {
 
     //current user
     Account currentUser = new Account("", "");
-    
+
 
     //welcome JFrame
     JFrame welcomeFrame;
@@ -88,9 +88,10 @@ public class DiscussionBoard2 extends JComponent implements Runnable {
     JButton assignGrade;
     JButton seeGrade;
     String author;
+    JFrame gradeFrame;
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(new DiscussionBoard2());
+        SwingUtilities.invokeLater(new DiscussionBoard4());
     }
 
     public void run() {
@@ -364,6 +365,9 @@ public class DiscussionBoard2 extends JComponent implements Runnable {
                 } else {
                     int a = usernames.size()-1;
                     for (int i = 0; i < usernames.size(); i++) {
+                        if (i == 0) {
+                            tempList.add(usernames.get(0));
+                        }
                         if (usernames.size() - i > 1) {
                             if (!(usernames.get(i).equals(usernames.get(i+1)))) {
                                 tempList.add(usernames.get(i));
@@ -374,6 +378,9 @@ public class DiscussionBoard2 extends JComponent implements Runnable {
                             }
                         }
                     }
+                }
+                for (int i = 0; i < tempList.size(); i++) {
+                    System.out.println(tempList.get(i));
                 }
                 String[] studs = new String[tempList.size()];
                 for (int i = 0; i < tempList.size(); i++) {
@@ -466,8 +473,8 @@ public class DiscussionBoard2 extends JComponent implements Runnable {
         accountCreationFrame.setVisible(true);
     }
     private void showGradingTeacher(String author) {
-        forumFrame = new JFrame(author);
-        Container content = forumFrame.getContentPane();
+        gradeFrame = new JFrame(author);
+        Container content = gradeFrame.getContentPane();
         SpringLayout layout = new SpringLayout();
         content.setLayout(layout);
         Forum f = getForum(currentCourse, currentForum);
@@ -483,15 +490,28 @@ public class DiscussionBoard2 extends JComponent implements Runnable {
         }
         assignGrade = new JButton("Assign Grade");
         assignGrade.addActionListener(actionListener);
+        JButton gradeExitButton = new JButton("Exit");
+        ActionListener action = new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (e.getSource() == gradeExitButton) {
+                    gradeFrame.dispose();
+                }
+            }
+        };
+        gradeExitButton.addActionListener(action);
         content.add(assignGrade);
+        content.add(gradeExitButton);
         //Layout for Button
         layout.putConstraint(SpringLayout.NORTH, assignGrade, 0, SpringLayout.NORTH, content);
         layout.putConstraint(SpringLayout.WEST, assignGrade, 230, SpringLayout.WEST, content);
+        layout.putConstraint(SpringLayout.NORTH, exitButton, 0, SpringLayout.NORTH, content);
+        layout.putConstraint(SpringLayout.WEST, exitButton, 0, SpringLayout.WEST, content);
 
-        forumFrame.setSize(600, 500);
-        forumFrame.setLocationRelativeTo(null);
-        forumFrame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-        forumFrame.setVisible(true);
+        gradeFrame.setSize(600, 500);
+        gradeFrame.setLocationRelativeTo(null);
+        gradeFrame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+        gradeFrame.setVisible(true);
 
     }
 
@@ -511,22 +531,23 @@ public class DiscussionBoard2 extends JComponent implements Runnable {
         gradingButton.addActionListener(actionListener);
         Forum f = getForum(currentCourse, currentForum);
         int addedCom = 50;
-        for (int i = 0; i < f.getComments().size(); i++){
-            JLabel newComment = new JLabel((i+1) + ". " + f.getComments().get(i).toString());
-            content.add(newComment);
-            layout.putConstraint(SpringLayout.NORTH, newComment, addedCom, SpringLayout.NORTH, content);
-            layout.putConstraint(SpringLayout.WEST, newComment, 20, SpringLayout.WEST, content);
-            addedCom += 15;
-            for (int j = 0; j < f.getComments().get(i).getReplies().size(); j++) {
-                JLabel commentReply = new JLabel(j+1 + ". " +
-                        f.getComments().get(i).getReplies().get(j).toString());
-                content.add(commentReply);
-                layout.putConstraint(SpringLayout.NORTH, commentReply, addedCom, SpringLayout.NORTH, content);
-                layout.putConstraint(SpringLayout.WEST, commentReply, 50, SpringLayout.WEST, content);
-                addedCom+=15;
+        if (f != null) {
+            for (int i = 0; i < f.getComments().size(); i++){
+                JLabel newComment = new JLabel((i+1) + ". " + f.getComments().get(i).toString());
+                content.add(newComment);
+                layout.putConstraint(SpringLayout.NORTH, newComment, addedCom, SpringLayout.NORTH, content);
+                layout.putConstraint(SpringLayout.WEST, newComment, 20, SpringLayout.WEST, content);
+                addedCom += 15;
+                for (int j = 0; j < f.getComments().get(i).getReplies().size(); j++) {
+                    JLabel commentReply = new JLabel(j+1 + ". " +
+                            f.getComments().get(i).getReplies().get(j).toString());
+                    content.add(commentReply);
+                    layout.putConstraint(SpringLayout.NORTH, commentReply, addedCom, SpringLayout.NORTH, content);
+                    layout.putConstraint(SpringLayout.WEST, commentReply, 50, SpringLayout.WEST, content);
+                    addedCom+=15;
+                }
             }
         }
-
         content.add(exitButton);
         content.add(deleteForumButton);
         content.add(commentButton);
