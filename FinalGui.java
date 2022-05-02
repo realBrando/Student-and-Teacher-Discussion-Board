@@ -22,6 +22,10 @@ public class DiscussionBoard4 extends JComponent implements Runnable {
     private static final Object gatekeeper = new Object();
 
     private static Scanner scanner = new Scanner(System.in);
+    
+    private static String host;
+    
+    private static int port;
 
     private static final String title = "Discussion Board";
     private static final String welcome = "Welcome to the discussion board!";
