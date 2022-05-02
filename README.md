@@ -4,7 +4,7 @@ Instructions for compiling and running:
 In order to run the program, use the DiscussionBoard class and run the main method. Everything compiles and runs, and this program utilizes user input and working with a user interface to run a discussion board. In order to utilize the server, run the class Server first, then run the DiscussionBoard class. You will also need to create Accounts.txt and Serial.txt as they are used to hold data that is stored in the server.                                      
 
 Who submitted what:                                 
-Luca Marinello - Submitted Vocareum Workspace                       
+Andrew Brandon - Submitted Vocareum Workspace                       
 Alice Dinh - Submitted Project Report      
 Luca Marinello - Submitted Project Presentation         
 
@@ -17,7 +17,7 @@ Reply - This is a subclass of Message, it will extend Message. A reply object is
 Course - This is a class that applies to a given course that is chosen by a teacher. It contains a String object name, the name of the course, and an ArrayList of Forum objects, which is each discussion forum that falls under the course. In this class you can get and set both of those fields, as well as print with a toString method in a manner such that it will print the Course name, followed by every forum that falls underneath the course.                                            
 Forum - This is a class that is each discussion forum that will fall under a course, and it will contain a String object topic, the topic of the discussion forum, and and ArrayList of Comments, each of the comments that are in the Discussion Forum. In this class there are getters and setters, as well as a toString method that prints Forum topic, followed by each comment of the Discussion forum on new lines beneath it. As an aside, the toString methods of Forum, Comment, and Reply all work cohesively to create the text visual discussion board.  
 Server - This class contains the functionality for the server, allowing for network IO in this project. It sets up the server, stores data and passes it across the Network, as well as confirms to the user when connected or displays an error if there is no. connection.            
-DisussionBoard - This is the class that contains the main method and all the helping methods for game functionality. Every previous class and field is utilized in this final class. In this class, the Discussion Board is printed and interacts with the user, as well as it saves the data across runs to files utilizing serializable, and loads that data back in for future runs. This class also now contains the GUI and all the functionality involved with it. Everything that is visually interacted with the user runs from this class.             
+DisussionBoard4 - This is the class that contains the main method and all the helping methods for game functionality. Every previous class and field is utilized in this final class. In this class, the Discussion Board is printed and interacts with the user, as well as it saves the data across runs to files utilizing serializable, and loads that data back in for future runs. This class also now contains the GUI and all the functionality involved with it. Everything that is visually interacted with the user runs from this class.             
 
 Fixed Errors in Project 4:            
 Test Cases - Test cases for user interaction are documented in "Tests.md" and a test case testing the modifications to an account's credentials is provided. Test cases from Project 4 are also provided.              
