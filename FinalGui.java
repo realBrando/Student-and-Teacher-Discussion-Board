@@ -350,8 +350,9 @@ public class DiscussionBoard4 extends JComponent implements Runnable {
                             JOptionPane.INFORMATION_MESSAGE);
                 }
                 Comment commentedOn = f.getComments().get(Integer.parseInt(choice));
-                addComment(comment,commentedOn);
-
+                if (comment != null) {
+                    addComment(comment, commentedOn);
+                }
             }
             if (e.getSource() == gradingButton) {
                 Forum f = getForum(currentCourse, currentForum);
