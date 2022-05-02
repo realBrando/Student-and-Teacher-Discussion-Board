@@ -17,7 +17,7 @@ Course - This is a class that applies to a given course that is chosen by a teac
 Forum - This is a class that is each discussion forum that will fall under a course, and it will contain a String object topic, the topic of the discussion forum, and and ArrayList of Comments, each of the comments that are in the Discussion Forum. In this class there are getters and setters, as well as a toString method that prints Forum topic, followed by each comment of the Discussion forum on new lines beneath it. As an aside, the toString methods of Forum, Comment, and Reply all work cohesively to create the text visual discussion board.                                                    
 DisussionBoard - This is the class that contains the main method and all the helping methods for game functionality. Every previous class and field is utilized in this final class. In this class, the Discussion Board is printed and interacts with the user, as well as it saves the data across runs to files utilizing serializable, and loads that data back in for future runs.
 
-Fixed Errors in Project 4: 
-Test Cases - Test cases for user interaction are documented in "Tests.md" and a test case testing the changes of an account's credentials is provided. 
-Grading - Teachers are now allowed to assign grades based on the responses given which are visible to students. 
-Replies - Users are now able to reply to a specific discussion forum reply. 
+Fixed Errors in Project 4:            
+Test Cases - Test cases for user interaction are documented in "Tests.md" and a test case testing the changes of an account's credentials is provided.              
+Grading - Teachers are now allowed to assign grades based on the responses given which are visible to students.             
+Replies - Users are now able to reply to a specific discussion forum reply.               
