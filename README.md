@@ -18,9 +18,6 @@ Forum - This is a class that is each discussion forum that will fall under a cou
 DisussionBoard - This is the class that contains the main method and all the helping methods for game functionality. Every previous class and field is utilized in this final class. In this class, the Discussion Board is printed and interacts with the user, as well as it saves the data across runs to files utilizing serializable, and loads that data back in for future runs.
 
 Fixed Errors in Project 4:
-
 Test Cases - Test cases for user interaction are documented in "Tests.md" and a test case testing the changes of an account's credentials is provided.
-
 Grading - Teachers are now allowed to assign grades based on the responses given which are visible to students.
-
 Replies - Users are now able to reply to a specific discussion forum reply.
