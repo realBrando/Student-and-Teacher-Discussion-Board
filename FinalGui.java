@@ -17,7 +17,7 @@ import java.util.Scanner;
  * @version April 11, 2022
  *
  */
-public class DiscussionBoard4 extends JComponent implements Runnable {
+public class DiscussionBoard2 extends JComponent implements Runnable {
 
     private static final Object gatekeeper = new Object();
 
@@ -45,6 +45,7 @@ public class DiscussionBoard4 extends JComponent implements Runnable {
 
     //current user
     Account currentUser = new Account("", "");
+    
 
     //welcome JFrame
     JFrame welcomeFrame;
@@ -89,7 +90,7 @@ public class DiscussionBoard4 extends JComponent implements Runnable {
     String author;
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(new DiscussionBoard4());
+        SwingUtilities.invokeLater(new DiscussionBoard2());
     }
 
     public void run() {
@@ -358,12 +359,20 @@ public class DiscussionBoard4 extends JComponent implements Runnable {
                 for (int i = 0; i < f.getComments().size(); i++) {
                     usernames.add(f.getComments().get(i).getAuthor());
                 }
-                int a = usernames.size()-1;
-                for (int i = 0; i < usernames.size() - 1; i++) {
-                    if (i == 0) {
-                        tempList.add(usernames.get(i));
-                    } else if (!(usernames.get(i).equals(usernames.get(i+1)))){
-                        tempList.add(usernames.get(i+1));
+                if (usernames.size() == 1) {
+                    tempList.add(usernames.get(0));
+                } else {
+                    int a = usernames.size()-1;
+                    for (int i = 0; i < usernames.size(); i++) {
+                        if (usernames.size() - i > 1) {
+                            if (!(usernames.get(i).equals(usernames.get(i+1)))) {
+                                tempList.add(usernames.get(i));
+                            }
+                        } else if (usernames.size() - i == 1) {
+                            if (!(usernames.get(i).equals(usernames.get(i-1)))) {
+                                tempList.add(usernames.get(i));
+                            }
+                        }
                     }
                 }
                 String[] studs = new String[tempList.size()];
@@ -373,7 +382,9 @@ public class DiscussionBoard4 extends JComponent implements Runnable {
                 String message = (String) JOptionPane.showInputDialog(null, "Select a student to grade",
                         title, JOptionPane.QUESTION_MESSAGE, null, studs, studs[0]);
                 author = message;
-                showGradingTeacher(message);
+                if (message != null) {
+                    showGradingTeacher(message);
+                }
             }
             if (e.getSource() == assignGrade) {
                 String g = JOptionPane.showInputDialog(null, "Enter the point value you'd like to assign",
