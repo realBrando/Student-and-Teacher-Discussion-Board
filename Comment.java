@@ -37,9 +37,9 @@ public class Comment extends Message implements Serializable {
         StringBuilder stringBuilder = new StringBuilder(getAuthor() + ": ");
         stringBuilder.append(getContent() + " ");
         stringBuilder.append("(").append(getTimestamp(getTime())).append(")");
-        for (Reply r : replies) {
-            stringBuilder.append("\n\t" + r.toString());
-        }
+       // for (Reply r : replies) {
+      //      stringBuilder.append( r.toString());
+      //  }
         stringBuilder.append("\n");
         return stringBuilder.toString();
     }
@@ -49,4 +49,3 @@ public class Comment extends Message implements Serializable {
         return date.toString();
     }
 
-}
