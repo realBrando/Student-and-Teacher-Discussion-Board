@@ -1,3 +1,6 @@
+import java.io.Serializable;
+import java.util.Date;
+
 /**
  * Reply
  *
@@ -5,7 +8,7 @@
  *
  * @author Luca Marinello, Andrew Brandon, Alexandre Moraes, Alice Dinh, Eric Yong
  *
- * @version April 11, 2022
+ * @version May 2, 2022
  *
  */
 public class Reply extends Message implements Serializable {
@@ -25,7 +28,7 @@ public class Reply extends Message implements Serializable {
     }
 
     public String toString() {
-        StringBuilder stringBuilder = new StringBuilder(getAuthor() + ": ");
+        StringBuilder stringBuilder = new StringBuilder("\n\t" + getAuthor() + ": ");
         stringBuilder.append(getContent() + " ");
         stringBuilder.append("(").append(getTimestamp(getTime())).append(")");
         return stringBuilder.toString();
